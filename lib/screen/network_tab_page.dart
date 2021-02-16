@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:phoenix_ussd/models/constants.dart';
 import 'package:phoenix_ussd/models/info.dart';
@@ -30,7 +31,7 @@ class NetworkTabPage extends StatelessWidget {
                 vm.balanceNetwork
                     .split('.')
                     .first
-                    .replaceAll('по пакетам интернета', ''),
+                    .replaceAll('по пакетам интернета', '').replaceFirst('Mb',' Mb'),
                 style: TextStyle(fontSize: 20, color: Colors.white),
               ),
             ),
@@ -51,18 +52,20 @@ class NetworkTabPage extends StatelessWidget {
                 title: 'Остаток интернет',
                 onClick: () {
                   vm.sendUssdRequest(Constants.checkInternetBalance);
-                }),
+                },
+                isDisable: vm.requestState == RequestState.Ongoing),
             ButtonUssd(
                 title: 'Трафик 1Gb (50р.)',
-                onClick: () => _onClickBuy1(context)),
+                onClick: () => _onClickBuy1(context),
+                isDisable: vm.requestState == RequestState.Ongoing),
             ButtonUssd(
                 title: 'Трафик 5Gb (100р.)',
-                onClick: () {
-                  vm.sendUssdRequest(Constants.buy5Gb);
-                }),
+                onClick: () => _onClickBuy5(context),
+                isDisable: vm.requestState == RequestState.Ongoing),
             ButtonUssd(
                 title: 'Купить трафик 50Gb',
-                onClick: () => _onClickBuy50(context)),
+                onClick: () => _onClickBuy50(context),
+                isDisable: vm.requestState == RequestState.Ongoing),
           ],
         ),
         if (vm.requestList.isNotEmpty) SliverTitle(text: 'История запросов:'),
@@ -84,27 +87,41 @@ class NetworkTabPage extends StatelessWidget {
           ),
         if (vm.requestState == RequestState.Error)
           SliverToBoxAdapter(
-            child: Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Text(
-                    'Во время запроса ${vm.errorBalanceInfo.code} произошла ошибка. Повторитть запрос?',
-                    textAlign: TextAlign.center,
+            child: Container(
+              margin: EdgeInsets.symmetric(horizontal: 8),
+              decoration: BoxDecoration(
+                  color: Colors.deepOrangeAccent.withAlpha(40),
+                  borderRadius: BorderRadius.circular(16)),
+              child: Column(
+                children: [
+
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Text(
+                      'Во время запроса ${vm.errorBalanceInfo.code} произошла ошибка. Повторитть запрос?',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                          fontWeight: FontWeight.bold, color: Colors.black54),
+                    ),
                   ),
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    FlatButton(
-                        onPressed: () => vm.retryErrorCall(),
-                        child: Text('Повторить')),
-                    FlatButton(
-                        onPressed: () => vm.removeErrorCall(),
-                        child: Text('Отменить'))
-                  ],
-                )
-              ],
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      ButtonUssd(
+                          color: Colors.deepPurpleAccent,
+                          onClick: () => vm.retryErrorCall(),
+                          title: 'Повторить'),
+                      SizedBox(
+                        width: 8,
+                      ),
+                      ButtonUssd(
+                          color: Colors.deepPurpleAccent,
+                          onClick: () => vm.removeErrorCall(),
+                          title: 'Отменить')
+                    ],
+                  )
+                ],
+              ),
             ),
           ),
         SliverList(
@@ -137,6 +154,18 @@ class NetworkTabPage extends StatelessWidget {
               onConfirmClick: () => vm.sendUssdRequest(Constants.buy50Gb));
         });
   }
+
+  _onClickBuy5(BuildContext context) {
+    showModalBottomSheet<void>(
+        context: context,
+        builder: (BuildContext context) {
+          return SheetConfirmDialog(
+              text:
+              'С ваше счета будет списано 100 рублей. продолжить операцию?',
+              onConfirmClick: () => vm.sendUssdRequest(Constants.buy50Gb));
+        });
+  }
+
 
   _onClickBuy50(BuildContext context) {
     showModalBottomSheet<void>(

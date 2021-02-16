@@ -9,9 +9,11 @@ import 'package:provider/provider.dart';
 import 'components/button_ussd.dart';
 
 class PhoneTabPage extends StatelessWidget {
+  HomeViewModel vm;
+
   @override
   Widget build(BuildContext context) {
-    final vm = Provider.of<HomeViewModel>(context);
+    vm ??= Provider.of<HomeViewModel>(context);
     return CustomScrollView(
       slivers: <Widget>[
         SliverAppBar(
@@ -25,7 +27,7 @@ class PhoneTabPage extends StatelessWidget {
           flexibleSpace: FlexibleSpaceBar(
             centerTitle: true,
             title: Text(
-              vm.balance,
+              vm.balance.replaceFirst('Ваш б', 'Б') + 'RUB',
               style: TextStyle(fontSize: 20, color: Colors.white),
             ),
           ),
@@ -45,22 +47,22 @@ class PhoneTabPage extends StatelessWidget {
                 title: 'Проверить счет',
                 onClick: () {
                   vm.sendUssdRequest(Constants.checkBalance);
-                }),
+                },
+                isDisable: vm.requestState == RequestState.Ongoing),
             ButtonUssd(
                 title: 'Узнать свой номер',
                 onClick: () {
                   vm.sendUssdRequest(Constants.getMyPhoneNumber);
-                }),
+                },
+                isDisable: vm.requestState == RequestState.Ongoing),
             ButtonUssd(
                 title: 'Отложеный (50р.)',
-                onClick: () {
-                  vm.sendUssdRequest(Constants.get50Money);
-                }),
+                onClick: () => _onClickGet50(context),
+                isDisable: vm.requestState == RequestState.Ongoing),
             ButtonUssd(
                 title: 'Отложеный (100р.)',
-                onClick: () {
-                  vm.sendUssdRequest(Constants.get100Money);
-                }),
+                onClick: () => _onClickGet100(context),
+                isDisable: vm.requestState == RequestState.Ongoing),
           ],
         ),
         if (vm.requestList.isNotEmpty) SliverTitle(text: 'История запросов:'),
@@ -82,26 +84,46 @@ class PhoneTabPage extends StatelessWidget {
           ),
         if (vm.requestState == RequestState.Error)
           SliverToBoxAdapter(
-            child: Column(
-              children: [
-                Text('Во время запроса произошла ошибка'),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    FlatButton(
-                        onPressed: () => vm.retryErrorCall(),
-                        child: Text('Повторить')),
-                    FlatButton(
-                        onPressed: () => vm.removeErrorCall(),
-                        child: Text('Отменить'))
-                  ],
-                )
-              ],
+            child: Container(
+              margin: EdgeInsets.symmetric(horizontal: 8),
+              decoration: BoxDecoration(
+                  color: Colors.deepOrangeAccent.withAlpha(40),
+                  borderRadius: BorderRadius.circular(16)),
+              child: Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Text(
+                      'Во время запроса ${vm.errorBalanceInfo.code} произошла ошибка. Повторитть запрос?',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                          fontWeight: FontWeight.bold, color: Colors.black54),
+                    ),
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      ButtonUssd(
+                        color: Colors.deepPurpleAccent,
+                        onClick: () => vm.retryErrorCall(),
+                        title: 'Повторить',
+                      ),
+                      SizedBox(
+                        width: 8,
+                      ),
+                      ButtonUssd(
+                          color: Colors.deepPurpleAccent,
+                          onClick: () => vm.removeErrorCall(),
+                          title: 'Отменить')
+                    ],
+                  )
+                ],
+              ),
             ),
           ),
         SliverList(
           delegate: SliverChildBuilderDelegate(
-                (context, index) {
+            (context, index) {
               BalanceInfo ba = vm.requestList.elementAt(index);
               return ListTile(
                 title: Text(ba.response,
@@ -117,5 +139,27 @@ class PhoneTabPage extends StatelessWidget {
         )
       ],
     );
+  }
+
+  _onClickGet50(BuildContext context) {
+    showModalBottomSheet<void>(
+        context: context,
+        builder: (BuildContext context) {
+          return SheetConfirmDialog(
+              text:
+                  'Вы получаете отложеный платеж в размере 50 рублей. Стоимость услуги 7 рублей.',
+              onConfirmClick: () => vm.sendUssdRequest(Constants.get50Money));
+        });
+  }
+
+  _onClickGet100(BuildContext context) {
+    showModalBottomSheet<void>(
+        context: context,
+        builder: (BuildContext context) {
+          return SheetConfirmDialog(
+              text:
+                  'Вы получаете отложеный платеж в размере 100 рублей. Стоимость услуги 7 рублей.',
+              onConfirmClick: () => vm.sendUssdRequest(Constants.get50Money));
+        });
   }
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:phoenix_ussd/mvvm/home_view_model.dart';
 import 'package:phoenix_ussd/screen/phone_tab_page.dart';
 import 'package:phoenix_ussd/screen/ussd_tab_page.dart';
@@ -29,6 +30,12 @@ class _HomePageState extends State<HomePage>
   @override
   void initState() {
     super.initState();
+
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitDown,
+      DeviceOrientation.portraitUp,
+    ]);
+
     _tabController = TabController(
       length: widget.tabBarNav.length,
       vsync: this,
@@ -54,7 +61,6 @@ class _HomePageState extends State<HomePage>
     if (homeViewModel.balance.isEmpty) {
       homeViewModel.getBalance();
     }
-
 
     return Scaffold(
       bottomNavigationBar: BottomNavigationBar(

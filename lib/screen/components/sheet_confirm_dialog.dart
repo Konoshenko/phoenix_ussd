@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'components.dart';
+
 class SheetConfirmDialog extends StatelessWidget {
   const SheetConfirmDialog({
     Key key,
@@ -20,29 +22,38 @@ class SheetConfirmDialog extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            Text(text),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical:16.0,horizontal: 32),
+              child: Text(
+                text,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                    fontWeight: FontWeight.bold, color: Colors.black54),
+              ),
+            ),
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 SizedBox(
                   width: 16,
                 ),
                 Expanded(
-                  child: ElevatedButton(
-                      child: const Text('Продолжить'),
-                      onPressed: () {
+                  child: ButtonUssd(
+                      color: Colors.deepOrangeAccent,
+                      onClick: () {
                         onConfirmClick();
                         Navigator.pop(context);
-                      }),
+                      },
+                      title: 'Продолжить'),
                 ),
                 SizedBox(
-                  width: 16,
+                  width: 8,
                 ),
                 Expanded(
-                  child: ElevatedButton(
-                    child: const Text('Отменить'),
-                    onPressed: () => Navigator.pop(context),
-                  ),
+                  child: ButtonUssd(
+                      color: Colors.deepOrangeAccent,
+                      onClick: () => Navigator.pop(context),
+                      title: 'Отменить'),
                 ),
                 SizedBox(
                   width: 16,

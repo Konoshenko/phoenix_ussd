@@ -12,13 +12,13 @@ class ListTileBalanceInfo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      leading: Text(ba.code),
-      title: Text(ba.response,
+      //leading: Text(ba?.updateTime?.toUtc()?.toString() ?? 'Неизвесно'),
+      title: Text(ba.response),
+      subtitle: Text(ba.code,
           style: TextStyle(
               color: Theme.of(context).primaryColor,
               fontSize: 16,
               fontWeight: FontWeight.bold)),
-      subtitle: Text(ba?.updateTime?.toUtc()?.toString() ?? 'Неизвесно'),
     );
   }
 }

@@ -15,7 +15,7 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      theme: ThemeData(primaryColor: Colors.deepPurpleAccent),
+      theme: ThemeData(primaryColor: Colors.deepPurpleAccent,accentColor: Colors.deepOrangeAccent),
       home: ChangeNotifierProvider(
         create: (context) => HomeViewModel(),
         child: HomePage(),

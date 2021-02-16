@@ -3,11 +3,15 @@ import 'package:flutter/material.dart';
 class ButtonUssd extends StatelessWidget {
   final String title;
   final Function onClick;
+  final Color color;
+  final isDisable;
 
   const ButtonUssd({
     Key key,
     @required this.title,
     this.onClick,
+    this.color,
+    this.isDisable = false,
   }) : super(key: key);
 
   @override
@@ -19,9 +23,10 @@ class ButtonUssd extends StatelessWidget {
           borderRadius: BorderRadius.circular(8.0),
         ),
         elevation: 0,
-        color: Colors.deepOrangeAccent,
+        color: color??Colors.deepOrangeAccent,
+        disabledColor: Colors.grey[200],
         textColor: Colors.white,
-        onPressed: onClick,
+        onPressed: !isDisable?onClick:null,
         child: Text(title),
       ),
     );
