@@ -4,12 +4,14 @@ import 'package:phoenix_ussd/models/info.dart';
 import 'package:phoenix_ussd/mvvm/home_view_model.dart';
 import 'package:provider/provider.dart';
 
-import 'components/button_ussd.dart';
+import 'components/components.dart';
 
 class NetworkTabPage extends StatelessWidget {
+  HomeViewModel vm;
+
   @override
   Widget build(BuildContext context) {
-    final vm = Provider.of<HomeViewModel>(context);
+    vm ??= Provider.of<HomeViewModel>(context);
     return CustomScrollView(
       slivers: <Widget>[
         SliverAppBar(
@@ -52,9 +54,7 @@ class NetworkTabPage extends StatelessWidget {
                 }),
             ButtonUssd(
                 title: 'Трафик 1Gb (50р.)',
-                onClick: () {
-                  vm.sendUssdRequest(Constants.buy1Gb);
-                }),
+                onClick: () => _onClickBuy1(context)),
             ButtonUssd(
                 title: 'Трафик 5Gb (100р.)',
                 onClick: () {
@@ -62,13 +62,11 @@ class NetworkTabPage extends StatelessWidget {
                 }),
             ButtonUssd(
                 title: 'Купить трафик 50Gb',
-                onClick: () {
-                  vm.sendUssdRequest(Constants.buy50Gb);
-                }),
+                onClick: () => _onClickBuy50(context)),
           ],
         ),
-        if (vm.requestList.isNotEmpty) _buildSliverTitle('История запросов:'),
-        if (vm.requestState == RequestState.Ongoing) ...[
+        if (vm.requestList.isNotEmpty) SliverTitle(text: 'История запросов:'),
+        if (vm.requestState == RequestState.Ongoing)
           SliverToBoxAdapter(
             child: Center(
               child: Row(
@@ -84,70 +82,70 @@ class NetworkTabPage extends StatelessWidget {
               ),
             ),
           ),
-          SliverList(
-            delegate: SliverChildBuilderDelegate(
-              (context, index) {
-                BalanceInfo ba = vm.requestList.elementAt(index);
-                return ListTile(
-                  title: Text(ba.response,style: TextStyle(
-                      color: Theme.of(context).primaryColor,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold)),
-                  subtitle: Text(ba.code),
-                );
-              },
-              childCount: vm.requestList.length,
-            ),
-          )
-        ],
-        if (vm.requestState == RequestState.Success)
-          SliverList(
-            delegate: SliverChildBuilderDelegate(
-              (context, index) {
-                BalanceInfo ba = vm.requestList.elementAt(index);
-                return ListTile(
-                  title: Text(ba.response,style: TextStyle(
-                      color: Theme.of(context).primaryColor,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold)),
-                  subtitle: Text(ba.code),
-                );
-              },
-              childCount: vm.requestList.length,
-            ),
-          ),
         if (vm.requestState == RequestState.Error)
-          SliverList(
-            delegate: SliverChildBuilderDelegate(
-              (context, index) {
-                BalanceInfo ba = vm.requestList.elementAt(index);
-                return ListTile(
-                  title: Text(ba.response,style: TextStyle(
-                      color: Theme.of(context).primaryColor,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold)),
-                  subtitle: Text(ba.code),
-                );
-              },
-              childCount: vm.requestList.length,
+          SliverToBoxAdapter(
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Text(
+                    'Во время запроса ${vm.errorBalanceInfo.code} произошла ошибка. Повторитть запрос?',
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    FlatButton(
+                        onPressed: () => vm.retryErrorCall(),
+                        child: Text('Повторить')),
+                    FlatButton(
+                        onPressed: () => vm.removeErrorCall(),
+                        child: Text('Отменить'))
+                  ],
+                )
+              ],
             ),
           ),
+        SliverList(
+          delegate: SliverChildBuilderDelegate(
+            (context, index) {
+              BalanceInfo ba = vm.requestList.elementAt(index);
+              return ListTile(
+                title: Text(ba.response,
+                    style: TextStyle(
+                        color: Theme.of(context).primaryColor,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold)),
+                subtitle: Text(ba.code),
+              );
+            },
+            childCount: vm.requestList.length,
+          ),
+        )
       ],
     );
   }
 
-  SliverToBoxAdapter _buildSliverTitle(String s) {
-    return SliverToBoxAdapter(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        child: Text(
-          s,
-          style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Colors.grey[700]),
-        ),
-      ),
-    );
+  _onClickBuy1(BuildContext context) {
+    showModalBottomSheet<void>(
+        context: context,
+        builder: (BuildContext context) {
+          return SheetConfirmDialog(
+              text:
+                  'С ваше счета будет списано 50 рублей. продолжить операцию?',
+              onConfirmClick: () => vm.sendUssdRequest(Constants.buy50Gb));
+        });
+  }
+
+  _onClickBuy50(BuildContext context) {
+    showModalBottomSheet<void>(
+        context: context,
+        builder: (BuildContext context) {
+          return SheetConfirmDialog(
+              text:
+                  'С ваше счета будет списано 500 рублей. продолжить операцию?',
+              onConfirmClick: () => vm.sendUssdRequest(Constants.buy50Gb));
+        });
   }
 }

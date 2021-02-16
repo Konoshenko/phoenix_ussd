@@ -2,13 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:phoenix_ussd/models/constants.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'components/sliver_title.dart';
+
 class UssdTabPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return CustomScrollView(
       slivers: <Widget>[
         SliverAppBar(
-
           backgroundColor: Colors.deepPurpleAccent,
           floating: true,
           pinned: true,
@@ -29,30 +30,15 @@ class UssdTabPage extends StatelessWidget {
             height: 20,
           ),
         ),
-        _buildSliverTitle('Услуга «Отложенный платеж»:'),
+        SliverTitle(text:'Услуга «Отложенный платеж»:'),
         _buildSliverList(getMoney),
-        _buildSliverTitle('Баланс и звонки'),
+        SliverTitle(text:'Баланс и звонки'),
         _buildSliverList(regularList),
-        _buildSliverTitle('Услуги «Вам звонили» и «Я на связи»:'),
+        SliverTitle(text:'Услуги «Вам звонили» и «Я на связи»:'),
         _buildSliverList(yuoHaveCall),
-        _buildSliverTitle('Вызовы экстренных служб:'),
+        SliverTitle(text:'Вызовы экстренных служб:'),
         _buildSliverList(emergencyList),
       ],
-    );
-  }
-
-  SliverToBoxAdapter _buildSliverTitle(String s) {
-    return SliverToBoxAdapter(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        child: Text(
-          s,
-          style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Colors.grey[700]),
-        ),
-      ),
     );
   }
 
@@ -77,3 +63,4 @@ class UssdTabPage extends StatelessWidget {
     );
   }
 }
+

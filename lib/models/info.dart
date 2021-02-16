@@ -1,16 +1,9 @@
-import 'package:phoenix_ussd/models/constants.dart';
-
 class BalanceInfo {
   String response;
   String code;
+  DateTime updateTime;
 
-  BalanceInfo(this.response, this.code);
-
-  String getBalance() {
-    if (code == Constants.checkBalance) {
-      return response;
-    } else {
-      return 'Баланс неизвестен';
-    }
+  BalanceInfo(this.response, this.code) {
+    this.updateTime = DateTime.now();
   }
 }

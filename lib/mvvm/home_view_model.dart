@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:phoenix_ussd/models/constants.dart';
 import 'package:phoenix_ussd/models/info.dart';
@@ -15,6 +14,7 @@ class HomeViewModel extends ChangeNotifier {
   final List _requestList = <BalanceInfo>[];
   String balance = '';
   String balanceNetwork = '';
+  BalanceInfo errorBalanceInfo;
 
   List get requestList => _requestList.reversed.toList();
 
@@ -35,7 +35,7 @@ class HomeViewModel extends ChangeNotifier {
       responseMessage = await UssdService.makeRequest(
           simData.cards.first.subscriptionId, req);
 
-      _requestList.add(BalanceInfo(req, responseMessage));
+      _requestList.add(BalanceInfo(responseMessage, req));
 
       if (req == Constants.checkBalance) {
         balance = responseMessage.split('р.').first;
@@ -43,14 +43,11 @@ class HomeViewModel extends ChangeNotifier {
       if (req == Constants.checkInternetBalance) {
         balanceNetwork = responseMessage;
       }
-
       requestState = RequestState.Success;
       notifyListeners();
     } catch (e) {
       requestState = RequestState.Error;
-      _requestList
-          .add(BalanceInfo(e is PlatformException ? e.code : "", e.message));
-
+      errorBalanceInfo = BalanceInfo(e.message, req);
       notifyListeners();
     }
   }
@@ -92,5 +89,20 @@ class HomeViewModel extends ChangeNotifier {
       balance = responseMessage.split('р.').first;
       notifyListeners();
     } catch (e) {}
+  }
+
+  void removeErrorCall() {
+    errorBalanceInfo = null;
+    requestState = RequestState.Success;
+    notifyListeners();
+  }
+
+  void retryErrorCall() {
+    if (errorBalanceInfo != null) {
+      sendUssdRequest(errorBalanceInfo.code);
+    } else {
+      requestState = RequestState.Success;
+      notifyListeners();
+    }
   }
 }

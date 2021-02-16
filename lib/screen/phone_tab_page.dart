@@ -2,12 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:phoenix_ussd/models/constants.dart';
 import 'package:phoenix_ussd/models/info.dart';
 import 'package:phoenix_ussd/mvvm/home_view_model.dart';
+import 'package:phoenix_ussd/screen/components/components.dart';
+import 'package:phoenix_ussd/screen/components/sliver_title.dart';
 import 'package:provider/provider.dart';
 
 import 'components/button_ussd.dart';
 
 class PhoneTabPage extends StatelessWidget {
-
   @override
   Widget build(BuildContext context) {
     final vm = Provider.of<HomeViewModel>(context);
@@ -62,89 +63,59 @@ class PhoneTabPage extends StatelessWidget {
                 }),
           ],
         ),
-       if(vm.requestList.isNotEmpty) _buildSliverTitle('История запросов:'),
-        if (vm.requestState == RequestState.Ongoing) ...[
+        if (vm.requestList.isNotEmpty) SliverTitle(text: 'История запросов:'),
+        if (vm.requestState == RequestState.Ongoing)
           SliverToBoxAdapter(
             child: Center(
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
                   SizedBox(
-                    width: MediaQuery.of(context).size.width - 50,
-                    height: 4,
-                    child: LinearProgressIndicator(
-
-                    ),
+                    width: MediaQuery.of(context).size.width - 100,
+                    height: 2,
+                    child: LinearProgressIndicator(),
                   ),
                   SizedBox(width: 24),
                 ],
               ),
             ),
           ),
-          SliverList(
-            delegate: SliverChildBuilderDelegate(
-                  (context, index) {
-                BalanceInfo ba = vm.requestList.elementAt(index);
-                return ListTile(
-                  title: Text(ba.response,  style: TextStyle(
-                      color: Theme.of(context).primaryColor,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold)),
-                  subtitle: Text(ba.code),
-                );
-              },
-              childCount: vm.requestList.length,
-            ),
-          ),
-        ],
-        if (vm.requestState == RequestState.Success)
-          SliverList(
-            delegate: SliverChildBuilderDelegate(
-              (context, index) {
-                BalanceInfo ba = vm.requestList.elementAt(index);
-                return ListTile(
-                  title: Text(ba.response,  style: TextStyle(
-                      color: Theme.of(context).primaryColor,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold)),
-                  subtitle: Text(ba.code),
-                );
-              },
-              childCount: vm.requestList.length,
-            ),
-          ),
         if (vm.requestState == RequestState.Error)
-          SliverList(
-            delegate: SliverChildBuilderDelegate(
-                  (context, index) {
-                BalanceInfo ba = vm.requestList.elementAt(index);
-                return ListTile(
-                  title: Text(ba.response,  style: TextStyle(
-                      color: Theme.of(context).primaryColor,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold)),
-                  subtitle: Text(ba.code),
-                );
-              },
-              childCount: vm.requestList.length,
+          SliverToBoxAdapter(
+            child: Column(
+              children: [
+                Text('Во время запроса произошла ошибка'),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    FlatButton(
+                        onPressed: () => vm.retryErrorCall(),
+                        child: Text('Повторить')),
+                    FlatButton(
+                        onPressed: () => vm.removeErrorCall(),
+                        child: Text('Отменить'))
+                  ],
+                )
+              ],
             ),
           ),
+        SliverList(
+          delegate: SliverChildBuilderDelegate(
+                (context, index) {
+              BalanceInfo ba = vm.requestList.elementAt(index);
+              return ListTile(
+                title: Text(ba.response,
+                    style: TextStyle(
+                        color: Theme.of(context).primaryColor,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold)),
+                subtitle: Text(ba.code),
+              );
+            },
+            childCount: vm.requestList.length,
+          ),
+        )
       ],
-    );
-  }
-
-  SliverToBoxAdapter _buildSliverTitle(String s) {
-    return SliverToBoxAdapter(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        child: Text(
-          s,
-          style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Colors.grey[700]),
-        ),
-      ),
     );
   }
 }
