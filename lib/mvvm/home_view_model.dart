@@ -68,6 +68,7 @@ class HomeViewModel extends ChangeNotifier {
           simData.cards.first.subscriptionId, Constants.checkInternetBalance);
 
       balanceNetwork = responseMessage.split('.').first;
+      notifyListeners();
     } catch (e) {}
   }
 

@@ -30,13 +30,13 @@ class UssdTabPage extends StatelessWidget {
             height: 20,
           ),
         ),
-        SliverTitle(text:'Услуга «Отложенный платеж»:'),
+        SliverTitle(text: 'Услуга «Отложенный платеж»:'),
         _buildSliverList(getMoney),
-        SliverTitle(text:'Баланс и звонки'),
+        SliverTitle(text: 'Баланс и звонки'),
         _buildSliverList(regularList),
-        SliverTitle(text:'Услуги «Вам звонили» и «Я на связи»:'),
+        SliverTitle(text: 'Услуги «Вам звонили» и «Я на связи»:'),
         _buildSliverList(yuoHaveCall),
-        SliverTitle(text:'Вызовы экстренных служб:'),
+        SliverTitle(text: 'Вызовы экстренных служб:'),
         _buildSliverList(emergencyList),
       ],
     );
@@ -63,4 +63,3 @@ class UssdTabPage extends StatelessWidget {
     );
   }
 }
-

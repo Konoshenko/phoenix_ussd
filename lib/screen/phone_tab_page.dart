@@ -68,17 +68,15 @@ class PhoneTabPage extends StatelessWidget {
         if (vm.requestList.isNotEmpty) SliverTitle(text: 'История запросов:'),
         if (vm.requestState == RequestState.Ongoing)
           SliverToBoxAdapter(
-            child: Center(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  SizedBox(
-                    width: MediaQuery.of(context).size.width - 100,
-                    height: 2,
-                    child: LinearProgressIndicator(),
-                  ),
-                  SizedBox(width: 24),
-                ],
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Center(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    CircularProgressIndicator(),
+                  ],
+                ),
               ),
             ),
           ),
@@ -125,14 +123,7 @@ class PhoneTabPage extends StatelessWidget {
           delegate: SliverChildBuilderDelegate(
             (context, index) {
               BalanceInfo ba = vm.requestList.elementAt(index);
-              return ListTile(
-                title: Text(ba.response,
-                    style: TextStyle(
-                        color: Theme.of(context).primaryColor,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold)),
-                subtitle: Text(ba.code),
-              );
+              return ListTileBalanceInfo(ba: ba);
             },
             childCount: vm.requestList.length,
           ),

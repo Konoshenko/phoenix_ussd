@@ -31,7 +31,8 @@ class NetworkTabPage extends StatelessWidget {
                 vm.balanceNetwork
                     .split('.')
                     .first
-                    .replaceAll('по пакетам интернета', '').replaceFirst('Mb',' Mb'),
+                    .replaceAll('по пакетам интернета', '')
+                    .replaceFirst('Mb', ' Mb'),
                 style: TextStyle(fontSize: 20, color: Colors.white),
               ),
             ),
@@ -78,7 +79,17 @@ class NetworkTabPage extends StatelessWidget {
                   SizedBox(
                     width: MediaQuery.of(context).size.width - 100,
                     height: 2,
-                    child: LinearProgressIndicator(),
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Center(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: <Widget>[
+                            CircularProgressIndicator(),
+                          ],
+                        ),
+                      ),
+                    ),
                   ),
                   SizedBox(width: 24),
                 ],
@@ -94,7 +105,6 @@ class NetworkTabPage extends StatelessWidget {
                   borderRadius: BorderRadius.circular(16)),
               child: Column(
                 children: [
-
                   Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: Text(
@@ -128,14 +138,7 @@ class NetworkTabPage extends StatelessWidget {
           delegate: SliverChildBuilderDelegate(
             (context, index) {
               BalanceInfo ba = vm.requestList.elementAt(index);
-              return ListTile(
-                title: Text(ba.response,
-                    style: TextStyle(
-                        color: Theme.of(context).primaryColor,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold)),
-                subtitle: Text(ba.code),
-              );
+              return ListTileBalanceInfo(ba: ba);
             },
             childCount: vm.requestList.length,
           ),
@@ -161,11 +164,10 @@ class NetworkTabPage extends StatelessWidget {
         builder: (BuildContext context) {
           return SheetConfirmDialog(
               text:
-              'С ваше счета будет списано 100 рублей. продолжить операцию?',
+                  'С ваше счета будет списано 100 рублей. продолжить операцию?',
               onConfirmClick: () => vm.sendUssdRequest(Constants.buy50Gb));
         });
   }
-
 
   _onClickBuy50(BuildContext context) {
     showModalBottomSheet<void>(
