@@ -1,20 +1,20 @@
 class Constants {
-  static final checkBalance = '*101#';
-  static final checkInternetBalance = '*109*2#';
-  static final getMyPhoneNumber = '*161#';
-  static final statusIamInTouch = '*110*20#';
-  static final buy1Gb = '*109*2*1#';
-  static final buy5Gb = '*109*2*5#';
-  static final buy50Gb = '*109*2*50#';
-  static final get25Money = '*101*1*25#';
-  static final get50Money = '*101*1*50#';
-  static final get100Money = '*101*1*100#';
+  static const checkBalance = '*101#';
+  static const checkInternetBalance = '*109*2#';
+  static const getMyPhoneNumber = '*161#';
+  static const statusIamInTouch = '*110*20#';
+  static const buy1Gb = '*109*2*1#';
+  static const buy5Gb = '*109*2*5#';
+  static const buy50Gb = '*109*2*50#';
+  static const get25Money = '*101*1*25#';
+  static const get50Money = '*101*1*50#';
+  static const get100Money = '*101*1*100#';
 }
 
 enum RequestState {
-  Ongoing,
-  Success,
-  Error,
+  ongoing,
+  success,
+  error,
 }
 
 final emergencyList = <String, String>{

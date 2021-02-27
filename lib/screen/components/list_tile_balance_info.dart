@@ -3,8 +3,8 @@ import 'package:phoenix_ussd/models/info.dart';
 
 class ListTileBalanceInfo extends StatelessWidget {
   const ListTileBalanceInfo({
-    Key key,
     @required this.ba,
+    Key key,
   }) : super(key: key);
 
   final BalanceInfo ba;
@@ -22,7 +22,7 @@ class ListTileBalanceInfo extends StatelessWidget {
                   fontWeight: FontWeight.bold)),
           subtitle: Text(ba.response),
         ),
-        Divider(),
+        const Divider(),
       ],
     );
   }

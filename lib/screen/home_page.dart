@@ -1,20 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:phoenix_ussd/mvvm/home_view_model.dart';
+import 'package:phoenix_ussd/screen/network_tab_page.dart';
 import 'package:phoenix_ussd/screen/phone_tab_page.dart';
 import 'package:phoenix_ussd/screen/ussd_tab_page.dart';
 import 'package:provider/provider.dart';
 
-import 'network_tab_page.dart';
-
 class HomePage extends StatefulWidget {
+  HomePage({Key key}) : super(key: key);
+
   final tabBarNav = [
     {
-      'title': Text("Баланс"),
-      'icon': Icon(Icons.account_balance_wallet_outlined)
+      'title': 'Баланс',
+      'icon': const Icon(Icons.account_balance_wallet_outlined)
     },
-    {'title': Text("Интернет"), 'icon': Icon(Icons.wifi)},
-    {'title': Text("Справка"), 'icon': Icon(Icons.insert_drive_file_outlined)},
+    {'title': 'Интернет', 'icon': const Icon(Icons.wifi)},
+    {'title': 'Справка', 'icon': const Icon(Icons.insert_drive_file_outlined)},
   ];
 
   @override
@@ -39,12 +40,10 @@ class _HomePageState extends State<HomePage>
     _tabController = TabController(
       length: widget.tabBarNav.length,
       vsync: this,
-      initialIndex: 0,
-    );
-    _tabController.addListener(_tabListener);
+    )..addListener(_tabListener);
   }
 
-  _tabListener() {
+  void _tabListener() {
     setState(() {
       _currentTabIndex = _tabController.index;
       if (_currentTabIndex == 1 && homeViewModel.balanceNetwork.isEmpty) {
@@ -55,12 +54,16 @@ class _HomePageState extends State<HomePage>
 
   @override
   Widget build(BuildContext context) {
-    if (homeViewModel == null) {
-      homeViewModel = Provider.of<HomeViewModel>(context);
-    }
+    homeViewModel ??= Provider.of<HomeViewModel>(context);
     if (homeViewModel.balance.isEmpty) {
       homeViewModel.getBalance();
     }
+
+    final List<Widget> pages = [
+      const PhoneTabPage(),
+      const NetworkTabPage(),
+      const UssdTabPage()
+    ];
 
     return Scaffold(
       bottomNavigationBar: BottomNavigationBar(
@@ -72,12 +75,12 @@ class _HomePageState extends State<HomePage>
             });
           },
           items: widget.tabBarNav
-              .map((e) =>
-                  BottomNavigationBarItem(title: e['title'], icon: e['icon']))
+              .map((e) => BottomNavigationBarItem(
+                  label: e['title'] as String, icon: e['icon'] as Icon))
               .toList()),
       body: TabBarView(
         controller: _tabController,
-        children: [PhoneTabPage(), NetworkTabPage(), UssdTabPage()],
+        children: pages,
       ),
     );
   }

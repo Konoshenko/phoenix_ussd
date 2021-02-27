@@ -1,13 +1,19 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:phoenix_ussd/models/constants.dart';
-import 'package:phoenix_ussd/models/info.dart';
 import 'package:phoenix_ussd/mvvm/home_view_model.dart';
+import 'package:phoenix_ussd/screen/components/components.dart';
 import 'package:provider/provider.dart';
+import 'package:shimmer/shimmer.dart';
 
-import 'components/components.dart';
+class NetworkTabPage extends StatefulWidget {
+  const NetworkTabPage({Key key}) : super(key: key);
 
-class NetworkTabPage extends StatelessWidget {
+  @override
+  _NetworkTabPageState createState() => _NetworkTabPageState();
+}
+
+class _NetworkTabPageState extends State<NetworkTabPage> {
   HomeViewModel vm;
 
   @override
@@ -19,28 +25,22 @@ class NetworkTabPage extends StatelessWidget {
           backgroundColor: Colors.deepPurpleAccent,
           floating: true,
           pinned: true,
-          snap: false,
 
           // Display a placeholder widget to visualize the shrinking size.
           flexibleSpace: FlexibleSpaceBar(
             centerTitle: true,
-            collapseMode: CollapseMode.parallax,
             title: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Text(
-                vm.balanceNetwork
-                    .split('.')
-                    .first
-                    .replaceAll('по пакетам интернета', '')
-                    .replaceFirst('Mb', ' Mb'),
-                style: TextStyle(fontSize: 20, color: Colors.white),
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 300),
+                child: _mapNetworkStateToWidget(vm),
               ),
             ),
           ),
           // Make the initial height of the SliverAppBar larger than normal.
           expandedHeight: 200,
         ),
-        SliverToBoxAdapter(
+        const SliverToBoxAdapter(
           child: SizedBox(
             height: 20,
           ),
@@ -54,52 +54,31 @@ class NetworkTabPage extends StatelessWidget {
                 onClick: () {
                   vm.sendUssdRequest(Constants.checkInternetBalance);
                 },
-                isDisable: vm.requestState == RequestState.Ongoing),
+                isDisable: vm.requestState == RequestState.ongoing),
             ButtonUssd(
                 title: 'Трафик 1Gb (50р.)',
-                onClick: () => _onClickBuy1(context),
-                isDisable: vm.requestState == RequestState.Ongoing),
+                onClick: () => _onClickSendUssd(context, Constants.buy1Gb),
+                isDisable: vm.requestState == RequestState.ongoing),
             ButtonUssd(
                 title: 'Трафик 5Gb (100р.)',
-                onClick: () => _onClickBuy5(context),
-                isDisable: vm.requestState == RequestState.Ongoing),
-            ButtonUssd(
-                title: 'Купить трафик 50Gb',
-                onClick: () => _onClickBuy50(context),
-                isDisable: vm.requestState == RequestState.Ongoing),
+                onClick: () => _onClickSendUssd(context, Constants.buy5Gb),
+                isDisable: vm.requestState == RequestState.ongoing),
           ],
         ),
         if (vm.requestList.isNotEmpty) SliverTitle(text: 'История запросов:'),
-        if (vm.requestState == RequestState.Ongoing)
-          SliverToBoxAdapter(
-            child: Center(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  SizedBox(
-                    width: MediaQuery.of(context).size.width - 100,
-                    height: 2,
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Center(
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: <Widget>[
-                            CircularProgressIndicator(),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                  SizedBox(width: 24),
-                ],
+        if (vm.requestState == RequestState.ongoing)
+          const SliverToBoxAdapter(
+            child: Padding(
+              padding: EdgeInsets.all(8.0),
+              child: Center(
+                child: CircularProgressIndicator(),
               ),
             ),
           ),
-        if (vm.requestState == RequestState.Error)
+        if (vm.requestState == RequestState.error)
           SliverToBoxAdapter(
             child: Container(
-              margin: EdgeInsets.symmetric(horizontal: 8),
+              margin: const EdgeInsets.symmetric(horizontal: 8),
               decoration: BoxDecoration(
                   color: Colors.deepOrangeAccent.withAlpha(40),
                   borderRadius: BorderRadius.circular(16)),
@@ -110,18 +89,21 @@ class NetworkTabPage extends StatelessWidget {
                     child: Text(
                       'Во время запроса ${vm.errorBalanceInfo.code} произошла ошибка. Повторитть запрос?',
                       textAlign: TextAlign.center,
-                      style: TextStyle(
-                          fontWeight: FontWeight.bold, color: Colors.black54),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black54,
+                      ),
                     ),
                   ),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       ButtonUssd(
-                          color: Colors.deepPurpleAccent,
-                          onClick: () => vm.retryErrorCall(),
-                          title: 'Повторить'),
-                      SizedBox(
+                        color: Colors.deepPurpleAccent,
+                        onClick: () => vm.retryErrorCall(),
+                        title: 'Повторить',
+                      ),
+                      const SizedBox(
                         width: 8,
                       ),
                       ButtonUssd(
@@ -137,8 +119,7 @@ class NetworkTabPage extends StatelessWidget {
         SliverList(
           delegate: SliverChildBuilderDelegate(
             (context, index) {
-              BalanceInfo ba = vm.requestList.elementAt(index);
-              return ListTileBalanceInfo(ba: ba);
+              return ListTileBalanceInfo(ba: vm.requestList.elementAt(index));
             },
             childCount: vm.requestList.length,
           ),
@@ -147,36 +128,46 @@ class NetworkTabPage extends StatelessWidget {
     );
   }
 
-  _onClickBuy1(BuildContext context) {
+  void _onClickSendUssd(BuildContext context, String code) {
     showModalBottomSheet<void>(
         context: context,
-        builder: (BuildContext context) {
+        builder: (context) {
           return SheetConfirmDialog(
-              text:
-                  'С ваше счета будет списано 50 рублей. продолжить операцию?',
-              onConfirmClick: () => vm.sendUssdRequest(Constants.buy50Gb));
+              text: 'Продолжить выполнение USSD запроса $code?',
+              onConfirmClick: () => vm.sendUssdRequest(code));
         });
   }
 
-  _onClickBuy5(BuildContext context) {
-    showModalBottomSheet<void>(
-        context: context,
-        builder: (BuildContext context) {
-          return SheetConfirmDialog(
-              text:
-                  'С ваше счета будет списано 100 рублей. продолжить операцию?',
-              onConfirmClick: () => vm.sendUssdRequest(Constants.buy50Gb));
-        });
-  }
+  Widget _mapNetworkStateToWidget(HomeViewModel vm) {
+    switch (vm.networkLoadingState) {
+      case RequestState.ongoing:
+        return SizedBox(
+          child: Shimmer.fromColors(
+            baseColor: Colors.white,
+            highlightColor: Colors.grey.shade300,
+            child: const Text(
+              'Выполняется запрос...',
+              style: TextStyle(fontSize: 20, color: Colors.white),
+            ),
+          ),
+        );
+        break;
+      case RequestState.success:
+        return Text(
+          vm.balanceNetwork
+              .split('\nСправка')
+              .first
+              .replaceAll('по пакетам интернета', '')
+              .replaceAll('Mb', ' Mb'),
+          style: const TextStyle(fontSize: 20, color: Colors.white),
+        );
+        break;
 
-  _onClickBuy50(BuildContext context) {
-    showModalBottomSheet<void>(
-        context: context,
-        builder: (BuildContext context) {
-          return SheetConfirmDialog(
-              text:
-                  'С ваше счета будет списано 500 рублей. продолжить операцию?',
-              onConfirmClick: () => vm.sendUssdRequest(Constants.buy50Gb));
-        });
+      case RequestState.error:
+        return ButtonUssd(
+            title: 'Проверить баланс', onClick: () => vm.getNetworkBalance());
+        break;
+    }
+    return const SizedBox();
   }
 }

@@ -1,19 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:phoenix_ussd/models/constants.dart';
+import 'package:phoenix_ussd/screen/components/components.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import 'components/sliver_title.dart';
 
 class UssdTabPage extends StatelessWidget {
+  const UssdTabPage({Key key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return CustomScrollView(
       slivers: <Widget>[
-        SliverAppBar(
+        const SliverAppBar(
           backgroundColor: Colors.deepPurpleAccent,
           floating: true,
           pinned: true,
-          snap: false,
           // Display a placeholder widget to visualize the shrinking size.
           flexibleSpace: FlexibleSpaceBar(
             centerTitle: true,
@@ -25,7 +26,7 @@ class UssdTabPage extends StatelessWidget {
           // Make the initial height of the SliverAppBar larger than normal.
           expandedHeight: 200,
         ),
-        SliverToBoxAdapter(
+        const SliverToBoxAdapter(
           child: SizedBox(
             height: 20,
           ),
@@ -47,7 +48,7 @@ class UssdTabPage extends StatelessWidget {
       delegate: SliverChildBuilderDelegate(
         (context, index) {
           return ListTile(
-            onTap: () => launch("tel:${list.keys.elementAt(index)}"),
+            onTap: () => launch('tel:${list.keys.elementAt(index)}'),
             title: Text(
               list.keys.elementAt(index),
               style: TextStyle(

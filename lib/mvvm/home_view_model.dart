@@ -8,32 +8,22 @@ import 'package:ussd_service/ussd_service.dart';
 
 class HomeViewModel extends ChangeNotifier {
   RequestState requestState;
-  String requestCode = "";
+  RequestState balanceLoadingState;
+  RequestState networkLoadingState;
 
   //final Map<String, BalanceInfo> requestList = {};
-  final List _requestList = <BalanceInfo>[];
+  final List<BalanceInfo> _requestList = <BalanceInfo>[];
   String balance = '';
   String balanceNetwork = '';
   BalanceInfo errorBalanceInfo;
 
-  List get requestList => _requestList.reversed.toList();
+  List<BalanceInfo> get requestList => _requestList.reversed.toList();
 
   Future<void> sendUssdRequest(String req) async {
-    requestState = RequestState.Ongoing;
+    requestState = RequestState.ongoing;
     notifyListeners();
     try {
-      String responseMessage;
-      await Permission.phone.request();
-      if (!await Permission.phone.isGranted) {
-        throw Exception("permission missing");
-      }
-
-      SimData simData = await SimDataPlugin.getSimData();
-      if (simData == null) {
-        throw Exception("sim data is null");
-      }
-      responseMessage = await UssdService.makeRequest(
-          simData.cards.first.subscriptionId, req);
+      final String responseMessage = await _singleUssdRequest(req);
 
       _requestList.add(BalanceInfo(responseMessage, req));
 
@@ -43,58 +33,48 @@ class HomeViewModel extends ChangeNotifier {
       if (req == Constants.checkInternetBalance) {
         balanceNetwork = responseMessage;
       }
-      requestState = RequestState.Success;
+      requestState = RequestState.success;
       notifyListeners();
-    } catch (e) {
-      requestState = RequestState.Error;
-      errorBalanceInfo = BalanceInfo(e.message, req);
+    } on Exception catch (e) {
+      requestState = RequestState.error;
+      errorBalanceInfo = BalanceInfo(e.toString(), req);
       notifyListeners();
     }
   }
 
   Future<void> getNetworkBalance() async {
+    networkLoadingState = RequestState.ongoing;
+    notifyListeners();
     try {
-      String responseMessage;
-      await Permission.phone.request();
-      if (!await Permission.phone.isGranted) {
-        throw Exception("permission missing");
-      }
-
-      SimData simData = await SimDataPlugin.getSimData();
-      if (simData == null) {
-        throw Exception("sim data is null");
-      }
-      responseMessage = await UssdService.makeRequest(
-          simData.cards.first.subscriptionId, Constants.checkInternetBalance);
-
-      balanceNetwork = responseMessage.split('.').first;
+      final String responseMessage =
+          await _singleUssdRequest(Constants.checkInternetBalance);
+      balanceNetwork = responseMessage;
+      networkLoadingState = RequestState.success;
       notifyListeners();
-    } catch (e) {}
+    } on Exception catch (_) {
+      networkLoadingState = RequestState.error;
+      notifyListeners();
+    }
   }
 
   Future<void> getBalance() async {
+    balanceLoadingState = RequestState.ongoing;
+    notifyListeners();
     try {
-      String responseMessage;
-      await Permission.phone.request();
-      if (!await Permission.phone.isGranted) {
-        throw Exception("permission missing");
-      }
-
-      SimData simData = await SimDataPlugin.getSimData();
-      if (simData == null) {
-        throw Exception("sim data is null");
-      }
-      responseMessage = await UssdService.makeRequest(
-          simData.cards.first.subscriptionId, Constants.checkBalance);
-
+      final String responseMessage =
+          await _singleUssdRequest(Constants.checkBalance);
       balance = responseMessage.split('р.').first;
+      balanceLoadingState = RequestState.success;
       notifyListeners();
-    } catch (e) {}
+    } on Exception catch (_) {
+      balanceLoadingState = RequestState.error;
+      notifyListeners();
+    }
   }
 
   void removeErrorCall() {
     errorBalanceInfo = null;
-    requestState = RequestState.Success;
+    requestState = RequestState.success;
     notifyListeners();
   }
 
@@ -102,8 +82,20 @@ class HomeViewModel extends ChangeNotifier {
     if (errorBalanceInfo != null) {
       sendUssdRequest(errorBalanceInfo.code);
     } else {
-      requestState = RequestState.Success;
+      requestState = RequestState.success;
       notifyListeners();
     }
+  }
+
+  Future<String> _singleUssdRequest(String request) async {
+    await Permission.phone.request();
+    if (!await Permission.phone.isGranted) {
+      throw Exception('permission missing');
+    }
+    final SimData simData = await SimDataPlugin.getSimData();
+    if (simData == null) {
+      throw Exception('sim data is null');
+    }
+    return UssdService.makeRequest(simData.cards.first.subscriptionId, request);
   }
 }

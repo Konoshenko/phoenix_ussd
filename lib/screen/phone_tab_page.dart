@@ -1,14 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:phoenix_ussd/models/constants.dart';
-import 'package:phoenix_ussd/models/info.dart';
 import 'package:phoenix_ussd/mvvm/home_view_model.dart';
 import 'package:phoenix_ussd/screen/components/components.dart';
 import 'package:phoenix_ussd/screen/components/sliver_title.dart';
 import 'package:provider/provider.dart';
+import 'package:shimmer/shimmer.dart';
 
-import 'components/button_ussd.dart';
+class PhoneTabPage extends StatefulWidget {
 
-class PhoneTabPage extends StatelessWidget {
+   const PhoneTabPage({Key key}) : super(key: key);
+
+  @override
+  _PhoneTabPageState createState() => _PhoneTabPageState();
+}
+
+class _PhoneTabPageState extends State<PhoneTabPage> {
   HomeViewModel vm;
 
   @override
@@ -17,27 +23,21 @@ class PhoneTabPage extends StatelessWidget {
     return CustomScrollView(
       slivers: <Widget>[
         SliverAppBar(
-          // Allows the user to reveal the app bar if they begin scrolling back
-          // up the list of items.
           backgroundColor: Colors.deepPurpleAccent,
           floating: true,
           pinned: true,
-          snap: false,
-          // Display a placeholder widget to visualize the shrinking size.
           flexibleSpace: FlexibleSpaceBar(
             centerTitle: true,
-            title: Text(
-              vm.balance.replaceFirst('Ваш б', 'Б') + 'RUB',
-              style: TextStyle(fontSize: 20, color: Colors.white),
+            title: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 300),
+              child: _mapBalanceStateToWidget(vm),
             ),
           ),
           // Make the initial height of the SliverAppBar larger than normal.
           expandedHeight: 200,
         ),
-        SliverToBoxAdapter(
-          child: SizedBox(
-            height: 20,
-          ),
+        const SliverToBoxAdapter(
+          child: SizedBox(height: 20),
         ),
         SliverGrid.count(
           crossAxisCount: 2,
@@ -48,42 +48,37 @@ class PhoneTabPage extends StatelessWidget {
                 onClick: () {
                   vm.sendUssdRequest(Constants.checkBalance);
                 },
-                isDisable: vm.requestState == RequestState.Ongoing),
+                isDisable: vm.requestState == RequestState.ongoing),
             ButtonUssd(
                 title: 'Узнать свой номер',
                 onClick: () {
                   vm.sendUssdRequest(Constants.getMyPhoneNumber);
                 },
-                isDisable: vm.requestState == RequestState.Ongoing),
+                isDisable: vm.requestState == RequestState.ongoing),
             ButtonUssd(
                 title: 'Отложеный (50р.)',
-                onClick: () => _onClickGet50(context),
-                isDisable: vm.requestState == RequestState.Ongoing),
+                onClick: () => _onClickSendUssd(context, Constants.get50Money),
+                isDisable: vm.requestState == RequestState.ongoing),
             ButtonUssd(
                 title: 'Отложеный (100р.)',
-                onClick: () => _onClickGet100(context),
-                isDisable: vm.requestState == RequestState.Ongoing),
+                onClick: () => _onClickSendUssd(context, Constants.get100Money),
+                isDisable: vm.requestState == RequestState.ongoing),
           ],
         ),
         if (vm.requestList.isNotEmpty) SliverTitle(text: 'История запросов:'),
-        if (vm.requestState == RequestState.Ongoing)
-          SliverToBoxAdapter(
+        if (vm.requestState == RequestState.ongoing)
+          const SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.all(8.0),
+              padding: EdgeInsets.all(8.0),
               child: Center(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                    CircularProgressIndicator(),
-                  ],
-                ),
+                child: CircularProgressIndicator(),
               ),
             ),
           ),
-        if (vm.requestState == RequestState.Error)
+        if (vm.requestState == RequestState.error)
           SliverToBoxAdapter(
             child: Container(
-              margin: EdgeInsets.symmetric(horizontal: 8),
+              margin: const EdgeInsets.symmetric(horizontal: 8),
               decoration: BoxDecoration(
                   color: Colors.deepOrangeAccent.withAlpha(40),
                   borderRadius: BorderRadius.circular(16)),
@@ -94,7 +89,7 @@ class PhoneTabPage extends StatelessWidget {
                     child: Text(
                       'Во время запроса ${vm.errorBalanceInfo.code} произошла ошибка. Повторитть запрос?',
                       textAlign: TextAlign.center,
-                      style: TextStyle(
+                      style: const TextStyle(
                           fontWeight: FontWeight.bold, color: Colors.black54),
                     ),
                   ),
@@ -106,7 +101,7 @@ class PhoneTabPage extends StatelessWidget {
                         onClick: () => vm.retryErrorCall(),
                         title: 'Повторить',
                       ),
-                      SizedBox(
+                      const SizedBox(
                         width: 8,
                       ),
                       ButtonUssd(
@@ -122,8 +117,7 @@ class PhoneTabPage extends StatelessWidget {
         SliverList(
           delegate: SliverChildBuilderDelegate(
             (context, index) {
-              BalanceInfo ba = vm.requestList.elementAt(index);
-              return ListTileBalanceInfo(ba: ba);
+              return ListTileBalanceInfo(ba: vm.requestList.elementAt(index));
             },
             childCount: vm.requestList.length,
           ),
@@ -132,25 +126,41 @@ class PhoneTabPage extends StatelessWidget {
     );
   }
 
-  _onClickGet50(BuildContext context) {
-    showModalBottomSheet<void>(
-        context: context,
-        builder: (BuildContext context) {
-          return SheetConfirmDialog(
-              text:
-                  'Вы получаете отложеный платеж в размере 50 рублей. Стоимость услуги 7 рублей.',
-              onConfirmClick: () => vm.sendUssdRequest(Constants.get50Money));
-        });
+  Widget _mapBalanceStateToWidget(HomeViewModel vm) {
+    switch (vm.balanceLoadingState) {
+      case RequestState.ongoing:
+        return SizedBox(
+          child: Shimmer.fromColors(
+            baseColor: Colors.white,
+            highlightColor: Colors.grey.shade300,
+            child: const Text(
+              'Выполняется запрос...',
+              style: TextStyle(fontSize: 20, color: Colors.white),
+            ),
+          ),
+        );
+        break;
+      case RequestState.success:
+        return Text(
+          '${vm.balance.replaceFirst('Ваш б', 'Б')} руб.',
+          style: const TextStyle(fontSize: 20, color: Colors.white),
+        );
+        break;
+      case RequestState.error:
+        return ButtonUssd(
+            title: 'Проверить баланс', onClick: () => vm.getBalance());
+        break;
+    }
+    return const SizedBox();
   }
 
-  _onClickGet100(BuildContext context) {
+  void _onClickSendUssd(BuildContext context, String code) {
     showModalBottomSheet<void>(
         context: context,
-        builder: (BuildContext context) {
+        builder: (context) {
           return SheetConfirmDialog(
-              text:
-                  'Вы получаете отложеный платеж в размере 100 рублей. Стоимость услуги 7 рублей.',
-              onConfirmClick: () => vm.sendUssdRequest(Constants.get50Money));
+              text: 'Продолжить выполнение USSD запроса $code?',
+              onConfirmClick: () => vm.sendUssdRequest(code));
         });
   }
 }

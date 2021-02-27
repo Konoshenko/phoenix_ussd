@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 
 class SliverTitle extends StatelessWidget {
-  final String text;
 
   SliverTitle({
-    Key key,
     @required this.text,
+    Key key,
   })  : assert(text != null, text.isNotEmpty),
         super(key: key);
+
+  final String text;
 
   @override
   Widget build(BuildContext context) {
