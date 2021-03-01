@@ -144,7 +144,7 @@ class _NetworkTabPageState extends State<NetworkTabPage> {
         return SizedBox(
           child: Shimmer.fromColors(
             baseColor: Colors.white,
-            highlightColor: Colors.grey.shade300,
+            highlightColor: Colors.grey.shade400,
             child: const Text(
               'Выполняется запрос...',
               style: TextStyle(fontSize: 20, color: Colors.white),

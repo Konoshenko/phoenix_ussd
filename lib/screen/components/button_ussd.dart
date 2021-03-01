@@ -26,7 +26,11 @@ class ButtonUssd extends StatelessWidget {
         color: color ?? Colors.deepOrangeAccent,
         disabledColor: Colors.grey[200],
         textColor: Colors.white,
-        onPressed: !isDisable ? () => onClick() : null,
+        onPressed: !isDisable
+            ? () {
+                onClick();
+              }
+            : null,
         child: Text(title),
       ),
     );
